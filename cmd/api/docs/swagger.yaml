@@ -1,0 +1,76 @@
+basePath: /
+definitions:
+  models.Ad:
+    properties:
+      ad_type:
+        $ref: '#/definitions/models.AdType'
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      is_verified:
+        type: boolean
+      metadata:
+        $ref: '#/definitions/models.AdMetaData'
+      name:
+        type: string
+      program_id:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+  models.AdMetaData:
+    properties:
+      category:
+        type: string
+      keyword:
+        type: string
+    type: object
+  models.AdType:
+    enum:
+    - VIDEO
+    - BANNER
+    - NATIVE
+    type: string
+    x-enum-varnames:
+    - AdTypeVideo
+    - AdTypeBanner
+    - AdTypeNative
+info:
+  contact: {}
+  description: Simple ad serving service.
+  title: ServeAli API
+  version: "1.0"
+paths:
+  /serve/{zone_id}:
+    get:
+      description: Returns the first matching ad for the specified zone.
+      parameters:
+      - description: Zone ID
+        in: path
+        name: zone_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Ad'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Serve an ad
+      tags:
+      - Serve
+swagger: "2.0"

@@ -1,0 +1,114 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Simple ad serving service.",
+        "title": "ServeAli API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "basePath": "/",
+    "paths": {
+        "/serve/{zone_id}": {
+            "get": {
+                "description": "Returns the first matching ad for the specified zone.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Serve"
+                ],
+                "summary": "Serve an ad",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Zone ID",
+                        "name": "zone_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Ad"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.Ad": {
+            "type": "object",
+            "properties": {
+                "ad_type": {
+                    "$ref": "#/definitions/models.AdType"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "is_active": {
+                    "type": "boolean"
+                },
+                "is_verified": {
+                    "type": "boolean"
+                },
+                "metadata": {
+                    "$ref": "#/definitions/models.AdMetaData"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "program_id": {
+                    "type": "integer"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.AdMetaData": {
+            "type": "object",
+            "properties": {
+                "category": {
+                    "type": "string"
+                },
+                "keyword": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.AdType": {
+            "type": "string",
+            "enum": [
+                "VIDEO",
+                "BANNER",
+                "NATIVE"
+            ],
+            "x-enum-varnames": [
+                "AdTypeVideo",
+                "AdTypeBanner",
+                "AdTypeNative"
+            ]
+        }
+    }
+}
