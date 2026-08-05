@@ -1,6 +1,10 @@
 package handler
 
 import (
+	"net/http"
+	"serveAli/internal/service"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,5 +20,21 @@ import (
 //	@Failure		404		{object}	map[string]string
 //	@Router			/serve/{zone_id} [get]
 func ServeAd(c *gin.Context) {
+	zoneID, err := strconv.ParseUint(c.Param("zone_id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid zone id",
+		})
+		return
+	}
 
+	ad, err := service.Serve(uint(zoneID))
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, ad)
 }

@@ -130,6 +130,8 @@ var SwaggerInfo = &swag.Spec{
 	Description:      "Simple ad serving service.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
+	LeftDelim:        "{{",
+	RightDelim:       "}}",
 }
 
 func init() {

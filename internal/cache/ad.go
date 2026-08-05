@@ -2,32 +2,84 @@ package cache
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"strconv"
+	"strings"
+
 	"serveAli/internal/database"
 	"serveAli/internal/models"
-	"strconv"
 )
 
-func SetAd(ad models.Ad) error {
-	key := fmt.Sprintf("ad:%d", ad.ID)
+func GetAd(id uint) (*models.Ad, error) {
+	key := fmt.Sprintf("ad:%d", id)
 
-	metadata, err := json.Marshal(ad.Metadata)
+	data, err := database.Redis.HGetAll(database.Ctx, key).Result()
+
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	data := map[string]string{
-		"id":         strconv.FormatUint(uint64(ad.ID), 10),
-		"user_id":    strconv.FormatUint(uint64(ad.UserID), 10),
-		"program_id": strconv.FormatUint(uint64(ad.ProgramID), 10),
-		"name":       ad.Name,
-		"ad_type":    string(ad.AdType),
-		"metadata":   string(metadata),
+	if len(data) == 0 {
+		return nil, errors.New("ad not found")
 	}
 
-	return database.Redis.HSet(
+	adID, _ := strconv.ParseUint(data["id"], 10, 64)
+	userID, _ := strconv.ParseUint(data["user_id"], 10, 64)
+	programID, _ := strconv.ParseUint(data["program_id"], 10, 64)
+
+	var metadata models.AdMetaData
+	err = json.Unmarshal(
+		[]byte(data["metadata"]),
+		&metadata,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	isActive, _ := strconv.ParseBool(data["is_active"])
+	isVerified, _ := strconv.ParseBool(data["is_verified"])
+
+	return &models.Ad{
+		ID:         uint(adID),
+		UserID:     uint(userID),
+		ProgramID:  uint(programID),
+		Name:       data["name"],
+		AdType:     models.AdType(data["ad_type"]),
+		Metadata:   metadata,
+		IsActive:   isActive,
+		IsVerified: isVerified,
+	}, nil
+}
+
+func GetAllAds() ([]models.Ad, error) {
+	var ads []models.Ad
+
+	keys, err := database.Redis.Keys(
 		database.Ctx,
-		key,
-		data,
-	).Err()
+		"ad:*",
+	).Result()
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, key := range keys {
+		id := strings.TrimPrefix(key, "ad:")
+
+		adID, err := strconv.ParseUint(id, 10, 64)
+		if err != nil {
+			continue
+		}
+
+		ad, err := GetAd(uint(adID))
+		if err != nil {
+			continue
+		}
+
+		ads = append(ads, *ad)
+	}
+
+	return ads, nil
 }

@@ -7,6 +7,8 @@ type Zone struct {
 	Name       string       `json:"name"`
 	ZoneType   ZoneType     `json:"zone_type"`
 	Identifier string       `json:"identifier"`
+	IsActive   bool `json:"is_active"`
+	IsVerified bool `json:"is_verified"`
 	Metadata   ZoneMetaData `json:"metadata"`
 }
 

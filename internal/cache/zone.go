@@ -1,34 +1,53 @@
 package cache
 
 import (
+	"encoding/json"
+	"errors"
+	"fmt"
 	"serveAli/internal/database"
 	"serveAli/internal/models"
-	"encoding/json"
-	"fmt"
 	"strconv"
+)
+
+func GetZone(id uint) (*models.Zone, error) {
+	key := fmt.Sprintf("zone:%d", id)
+
+	data, err := database.Redis.HGetAll(database.Ctx,key,).Result()
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(data) == 0 {
+		return nil, errors.New("zone not found")
+	}
+
+	zoneID, _ := strconv.ParseUint(data["id"], 10, 64)
+	userID, _ := strconv.ParseUint(data["user_id"], 10, 64)
+	siteID, _ := strconv.ParseUint(data["site_id"], 10, 64)
+
+	var metadata models.ZoneMetaData
+	err = json.Unmarshal(
+		[]byte(data["metadata"]),
+		&metadata,
 	)
 
-func SetZone(zone models.Zone) error {
-	key := fmt.Sprintf("zone:%d", zone.ID)
-
-	metadata, err := json.Marshal(zone.Metadata)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	data := map[string]string{
-		"id":         strconv.FormatUint(uint64(zone.ID), 10),
-		"user_id":    strconv.FormatUint(uint64(zone.UserID), 10),
-		"site_id":    strconv.FormatUint(uint64(zone.SiteID), 10),
-		"name":       zone.Name,
-		"zone_type":  string(zone.ZoneType),
-		"identifier": zone.Identifier,
-		"metadata":   string(metadata),
-	}
+	isActive, _ := strconv.ParseBool(data["is_active"])
+	isVerified, _ := strconv.ParseBool(data["is_verified"])
 
-	return database.Redis.HSet(
-		database.Ctx,
-		key,
-		data,
-	).Err()
+	return &models.Zone{
+		ID:         uint(zoneID),
+		UserID:     uint(userID),
+		SiteID:     uint(siteID),
+		Name:       data["name"],
+		ZoneType:   models.ZoneType(data["zone_type"]),
+		Identifier: data["identifier"],
+		Metadata:   metadata,
+		IsActive:   isActive,
+		IsVerified: isVerified,
+	}, nil
 }
