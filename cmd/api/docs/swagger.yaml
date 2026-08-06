@@ -44,13 +44,32 @@ info:
 paths:
   /serve/{zone_id}:
     get:
-      description: Returns the first matching ad for the specified zone.
+      description: |-
+        Returns a matching ad for the specified zone.
+
+        Filters can be provided multiple times.
+        Examples:
+        /serve/7?visitor=user123&filter=available_ads
+        /serve/7?visitor=user123&filter=available_ads&filter=type:BANNER
+        /serve/7?visitor=user123&filter=available_ads&filter=type:BANNER&filter=category:restaurant&filter=keyword:pizza
       parameters:
       - description: Zone ID
         in: path
         name: zone_id
         required: true
         type: integer
+      - description: Visitor identifier
+        in: query
+        name: visitor
+        required: true
+        type: string
+      - collectionFormat: csv
+        description: Redis filter sets. Can be repeated.
+        in: query
+        items:
+          type: string
+        name: filter
+        type: array
       produces:
       - application/json
       responses:

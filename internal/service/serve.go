@@ -2,49 +2,50 @@ package service
 
 import (
 	"errors"
+
 	"serveAli/internal/cache"
 	"serveAli/internal/models"
 )
 
-func Serve(zoneID uint) (*models.Ad, error) {
-
+func Serve(zoneID uint,visitor string,filters []string,) (*models.Ad, error) {
 	zone, err := cache.GetZone(zoneID)
 	if err != nil {
 		return nil, err
 	}
 
-	ads, err := cache.GetAllAds()
+	if len(filters) == 0 {
+
+		filters = []string{
+			"available_ads",
+			"type:" + string(zone.ZoneType),
+			"category:" + zone.Metadata.Category,
+			"keyword:" + zone.Metadata.Keyword,
+		}
+	}
+
+	ids, err := cache.GetMatchingAds(visitor,filters)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, ad := range ads {
+	for _, id := range ids {
 
-		if Match(zone, &ad) {
-			return &ad, nil
+		ad, err := cache.GetAd(id)
+
+		if err != nil {
+			continue
 		}
 
-	}
+		if cache.SeenAd(visitor, ad.ID) {
+			continue
+		}
 
+		err = cache.MarkAdSeen(visitor,ad.ID,)
+		if err != nil {
+			return nil, err
+		}
+		
+		return ad, nil
+	}
 	return nil, errors.New("no matching ad found")
-}
-
-func Match(zone *models.Zone, ad *models.Ad) bool {
-	if !ad.IsActive || !ad.IsVerified {
-		return false
-	}
-
-	if zone.Metadata.Category != ad.Metadata.Category {
-		return false
-	}
-
-	if zone.Metadata.Keyword != ad.Metadata.Keyword {
-		return false
-	}
-
-	if ad.AdType != models.AdType(zone.ZoneType) {
-		return false
-	}
-
-	return true
 }

@@ -1,21 +1,20 @@
 package cache
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"serveAli/internal/database"
 	"serveAli/internal/models"
+
+	"github.com/google/uuid"
 )
 
 func GetAd(id uint) (*models.Ad, error) {
 	key := fmt.Sprintf("ad:%d", id)
 
 	data, err := database.Redis.HGetAll(database.Ctx, key).Result()
-
 	if err != nil {
 		return nil, err
 	}
@@ -28,58 +27,68 @@ func GetAd(id uint) (*models.Ad, error) {
 	userID, _ := strconv.ParseUint(data["user_id"], 10, 64)
 	programID, _ := strconv.ParseUint(data["program_id"], 10, 64)
 
-	var metadata models.AdMetaData
-	err = json.Unmarshal(
-		[]byte(data["metadata"]),
-		&metadata,
-	)
-
-	if err != nil {
-		return nil, err
-	}
-
 	isActive, _ := strconv.ParseBool(data["is_active"])
 	isVerified, _ := strconv.ParseBool(data["is_verified"])
 
 	return &models.Ad{
-		ID:         uint(adID),
-		UserID:     uint(userID),
-		ProgramID:  uint(programID),
-		Name:       data["name"],
-		AdType:     models.AdType(data["ad_type"]),
-		Metadata:   metadata,
+		ID:        uint(adID),
+		UserID:    uint(userID),
+		ProgramID: uint(programID),
+		Name:      data["name"],
+		AdType:    models.AdType(data["ad_type"]),
+		Metadata: models.AdMetaData{
+			Category: data["category"],
+			Keyword:  data["keyword"],
+		},
 		IsActive:   isActive,
 		IsVerified: isVerified,
 	}, nil
 }
 
-func GetAllAds() ([]models.Ad, error) {
-	var ads []models.Ad
+func GetMatchingAds(visitor string, filters []string) ([]uint, error) {
 
-	keys, err := database.Redis.Keys(
+	tempKey := fmt.Sprintf(
+		"temp:ads:%s",
+		uuid.New().String(),
+	)
+
+	err := database.Redis.SInterStore(
 		database.Ctx,
-		"ad:*",
+		tempKey,
+		filters...,
+	).Err()
+
+	if err != nil {
+		return nil, err
+	}
+
+	ids, err := database.Redis.SMembers(
+		database.Ctx,
+		tempKey,
 	).Result()
 
 	if err != nil {
 		return nil, err
 	}
 
-	for _, key := range keys {
-		id := strings.TrimPrefix(key, "ad:")
-
-		adID, err := strconv.ParseUint(id, 10, 64)
-		if err != nil {
-			continue
-		}
-
-		ad, err := GetAd(uint(adID))
-		if err != nil {
-			continue
-		}
-
-		ads = append(ads, *ad)
+	if err := database.Redis.Del(
+		database.Ctx,
+		tempKey,
+	).Err(); err != nil {
+		return nil, err
 	}
 
-	return ads, nil
+	var result []uint
+	for _, id := range ids {
+
+		n, err := strconv.ParseUint(id, 10, 64)
+
+		if err != nil {
+			continue
+		}
+
+		result = append(result, uint(n))
+	}
+
+	return result, nil
 }

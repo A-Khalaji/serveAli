@@ -17,7 +17,7 @@ const docTemplate = `{
     "paths": {
         "/serve/{zone_id}": {
             "get": {
-                "description": "Returns the first matching ad for the specified zone.",
+                "description": "Returns a matching ad for the specified zone.\n\nFilters can be provided multiple times.\nExamples:\n/serve/7?visitor=user123\u0026filter=available_ads\n/serve/7?visitor=user123\u0026filter=available_ads\u0026filter=type:BANNER\n/serve/7?visitor=user123\u0026filter=available_ads\u0026filter=type:BANNER\u0026filter=category:restaurant\u0026filter=keyword:pizza",
                 "produces": [
                     "application/json"
                 ],
@@ -32,6 +32,23 @@ const docTemplate = `{
                         "name": "zone_id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Visitor identifier",
+                        "name": "visitor",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Redis filter sets. Can be repeated.",
+                        "name": "filter",
+                        "in": "query"
                     }
                 ],
                 "responses": {
