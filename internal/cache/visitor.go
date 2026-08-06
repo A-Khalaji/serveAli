@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"serveAli/internal/database"
+	"time"
 )
 
 func SeenAd(visitor string, adID uint) bool {
@@ -24,9 +25,18 @@ func SeenAd(visitor string, adID uint) bool {
 func MarkAdSeen(visitor string, adID uint) error {
 	key := fmt.Sprintf("visitor:%s:seen_ads", visitor)
 
-	return database.Redis.SAdd(
+	err := database.Redis.SAdd(
 		context.Background(),
 		key,
 		adID,
+	).Err()
+	if err != nil {
+		return err
+	}
+
+	return database.Redis.Expire(
+		context.Background(),
+		key,
+		time.Hour,
 	).Err()
 }
