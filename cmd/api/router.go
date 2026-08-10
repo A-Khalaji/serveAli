@@ -2,6 +2,7 @@ package main
 
 import (
 	"serveAli/internal/handler"
+	"serveAli/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 
@@ -12,6 +13,8 @@ import (
 )
 
 func Routes(router *gin.Engine) {
+
+	router.Use(middleware.VisitorCookie())
 
 	router.GET("/serve/:zone_id", handler.ServeAd)
 

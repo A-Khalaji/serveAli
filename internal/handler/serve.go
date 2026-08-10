@@ -16,13 +16,12 @@ import (
 // @Description
 // @Description  Filters can be provided multiple times.
 // @Description  Example:
-// @Description  /serve/7?visitor=user123&filter=available_ads&filter=type:BANNER&filter=category:restaurant&filter=keyword:pizza
+// @Description  /serve/7?filter=available_ads&filter=type:BANNER&filter=category:restaurant&filter=keyword:pizza
 //
 // @Tags         Serve
 // @Produce      json
 //
 // @Param        zone_id  path   int       true  "Zone ID"
-// @Param        visitor  query  string    true  "Visitor identifier"
 // @Param        filter   query  []string  false "Redis filter sets. Can be repeated."
 //
 // @Success      200      {object} models.Ad
@@ -31,8 +30,7 @@ import (
 //
 // @Router       /serve/{zone_id} [get]
 func ServeAd(c *gin.Context) {
-	zoneID, err := strconv.ParseUint(c.Param("zone_id"),10,64,)
-	
+	zoneID, err := strconv.ParseUint(c.Param("zone_id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "invalid zone id",
@@ -40,16 +38,17 @@ func ServeAd(c *gin.Context) {
 		return
 	}
 
-	visitor := c.Query("visitor")
-	if visitor == "" {
+	visitor, err := c.Cookie("visitor")
+	if err != nil || visitor == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "visitor is required",
+			"error": "visitor cookie is required",
 		})
 		return
 	}
 
 	filters := c.QueryArray("filter")
-	ad, err := service.Serve(uint(zoneID),visitor,filters)
+
+	ad, err := service.Serve(uint(zoneID), visitor, filters)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": err.Error(),

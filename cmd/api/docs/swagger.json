@@ -10,7 +10,7 @@
     "paths": {
         "/serve/{zone_id}": {
             "get": {
-                "description": "Returns a matching ad for the specified zone.\n\nFilters can be provided multiple times.\nExamples:\n/serve/7?visitor=user123\u0026filter=available_ads\n/serve/7?visitor=user123\u0026filter=available_ads\u0026filter=type:BANNER\n/serve/7?visitor=user123\u0026filter=available_ads\u0026filter=type:BANNER\u0026filter=category:restaurant\u0026filter=keyword:pizza",
+                "description": "Returns a matching ad for the specified zone.\n\nFilters can be provided multiple times.\nExample:\n/serve/7?filter=available_ads\u0026filter=type:BANNER\u0026filter=category:restaurant\u0026filter=keyword:pizza",
                 "produces": [
                     "application/json"
                 ],
@@ -24,13 +24,6 @@
                         "description": "Zone ID",
                         "name": "zone_id",
                         "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Visitor identifier",
-                        "name": "visitor",
-                        "in": "query",
                         "required": true
                     },
                     {
