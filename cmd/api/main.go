@@ -16,10 +16,11 @@ func main() {
 	flag.Parse()
 
 	database.ConnectRedis()
+	database.ConnectClickHouse()
 
 	router := gin.Default()
 
 	Routes(router)
 
-	router.Run("localhost:8001")
+	router.Run("0.0.0.0:8001")
 }
