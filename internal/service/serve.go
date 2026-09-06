@@ -7,14 +7,13 @@ import (
 	"serveAli/internal/models"
 )
 
-func Serve(zoneID uint,visitor string,filters []string,) (*models.Ad, error) {
+func Serve(zoneID uint, visitor string, filters []string, eventContext models.EventContext) (*models.Ad, error) {
 	zone, err := cache.GetZone(zoneID)
 	if err != nil {
 		return nil, err
 	}
 
 	if len(filters) == 0 {
-
 		filters = []string{
 			"available_ads",
 			"type:" + string(zone.ZoneType),
@@ -23,15 +22,13 @@ func Serve(zoneID uint,visitor string,filters []string,) (*models.Ad, error) {
 		}
 	}
 
-	ids, err := cache.GetMatchingAds(visitor,filters)
+	ids, err := cache.GetMatchingAds(visitor, filters)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, id := range ids {
-
 		ad, err := cache.GetAd(id)
-
 		if err != nil {
 			continue
 		}
@@ -40,12 +37,25 @@ func Serve(zoneID uint,visitor string,filters []string,) (*models.Ad, error) {
 			continue
 		}
 
-		err = cache.MarkAdSeen(visitor,ad.ID,)
+		err = cache.MarkAdSeen(visitor, ad.ID)
 		if err != nil {
 			return nil, err
 		}
-		
+
+		err = CreateEvent(
+			models.EventTypeView,
+			uint64(ad.ID),
+			uint64(ad.ProgramID),
+			uint64(zone.ID),
+			uint64(zone.SiteID),
+			eventContext,
+		)
+		if err != nil {
+			return nil, err
+		}
+
 		return ad, nil
 	}
+
 	return nil, errors.New("no matching ad found")
 }

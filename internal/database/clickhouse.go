@@ -21,9 +21,3 @@ func ConnectClickHouse() {
 	ClickHouseDB = db
 }
 
-
-
-
-
-
-

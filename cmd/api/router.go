@@ -1,6 +1,7 @@
 package main
 
 import (
+	"serveAli/internal/event"
 	"serveAli/internal/handler"
 	"serveAli/internal/middleware"
 
@@ -12,11 +13,11 @@ import (
 	_ "serveAli/cmd/api/docs"
 )
 
-func Routes(router *gin.Engine) {
+func Routes(router *gin.Engine, geoIP *event.GeoIP) {
 
 	router.Use(middleware.VisitorCookie())
 
-	router.GET("/serve/:zone_id", handler.ServeAd)
+	router.GET("/serve/:zone_id", handler.ServeAd(geoIP))
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }
