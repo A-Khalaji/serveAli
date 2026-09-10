@@ -18,6 +18,7 @@ func Routes(router *gin.Engine, geoIP *event.GeoIP) {
 	router.Use(middleware.VisitorCookie())
 
 	router.GET("/serve/:zone_id", handler.ServeAd(geoIP))
-
+	router.GET("/click/:impression_id", handler.ClickAd(geoIP))
+	
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }

@@ -7,17 +7,11 @@ import (
 	"serveAli/internal/models"
 )
 
-func CreateEvent(
-	eventType string,
-	adID uint64,
-	programID uint64,
-	zoneID uint64,
-	siteID uint64,
-	context models.EventContext,
-) error {
+func CreateEvent(eventType string,adID uint64,programID uint64,zoneID uint64,siteID uint64,context models.EventContext,impressionID string,) error {
 	event := models.Event{
 		Timestamp: time.Now(),
 		EventType: eventType,
+		ImpressionID: impressionID,
 
 		AdID:       adID,
 		ProgramID: programID,

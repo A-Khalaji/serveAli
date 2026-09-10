@@ -6,6 +6,7 @@ type Ad struct {
 	ProgramID uint       `json:"program_id"`
 	Name   string `json:"name"`
 	AdType AdType `json:"ad_type"`
+	DestinationURL string `json:"destination_url"`
 	Metadata AdMetaData `json:"metadata"`
 	IsActive   bool `json:"is_active"`
 	IsVerified bool `json:"is_verified"`

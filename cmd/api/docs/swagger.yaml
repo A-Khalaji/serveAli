@@ -4,6 +4,8 @@ definitions:
     properties:
       ad_type:
         $ref: '#/definitions/models.AdType'
+      destination_url:
+        type: string
       id:
         type: integer
       is_active:
@@ -42,6 +44,36 @@ info:
   title: ServeAli API
   version: "1.0"
 paths:
+  /click/{impression_id}:
+    get:
+      description: Records a click for an ad impression and redirects to the destination
+        URL.
+      parameters:
+      - description: Impression ID
+        in: path
+        name: impression_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Found
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Track an ad click
+      tags:
+      - Click
   /serve/{zone_id}:
     get:
       description: |-

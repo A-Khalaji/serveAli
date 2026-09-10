@@ -3,11 +3,13 @@ package service
 import (
 	"errors"
 
+	"github.com/google/uuid"
+
 	"serveAli/internal/cache"
 	"serveAli/internal/models"
 )
 
-func Serve(zoneID uint, visitor string, filters []string, eventContext models.EventContext) (*models.Ad, error) {
+func Serve(zoneID uint, visitor string, filters []string, eventContext models.EventContext) (*models.ServedAd, error) {
 	zone, err := cache.GetZone(zoneID)
 	if err != nil {
 		return nil, err
@@ -37,6 +39,23 @@ func Serve(zoneID uint, visitor string, filters []string, eventContext models.Ev
 			continue
 		}
 
+		impressionID := uuid.New()
+
+		err = cache.SetImpression(
+		    impressionID.String(),
+			cache.Impression{
+				AdID:           uint64(ad.ID),
+				ProgramID:      uint64(ad.ProgramID),
+				ZoneID:         uint64(zone.ID),
+				SiteID:         uint64(zone.SiteID),
+				VisitorID:      visitor,
+				DestinationURL: ad.DestinationURL,
+			},
+		)
+		if err != nil {
+			return nil, err
+		}
+
 		err = cache.MarkAdSeen(visitor, ad.ID)
 		if err != nil {
 			return nil, err
@@ -49,12 +68,16 @@ func Serve(zoneID uint, visitor string, filters []string, eventContext models.Ev
 			uint64(zone.ID),
 			uint64(zone.SiteID),
 			eventContext,
+			impressionID.String(),
 		)
 		if err != nil {
 			return nil, err
 		}
 
-		return ad, nil
+		return &models.ServedAd{
+			Ad:           *ad,
+			ImpressionID: impressionID.String(),
+		}, nil
 	}
 
 	return nil, errors.New("no matching ad found")

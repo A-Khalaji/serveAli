@@ -5,6 +5,8 @@ import "time"
 type Event struct {
 	Timestamp  time.Time `json:"timestamp"`
 	EventType  string    `json:"event_type"`
+	ImpressionID string    `json:"impression_id"`
+
 
 	AdID       uint64 `json:"ad_id"`
 	ProgramID  uint64 `json:"program_id"`

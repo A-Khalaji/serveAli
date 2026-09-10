@@ -36,6 +36,7 @@ func GetAd(id uint) (*models.Ad, error) {
 		ProgramID: uint(programID),
 		Name:      data["name"],
 		AdType:    models.AdType(data["ad_type"]),
+		DestinationURL: data["destination_url"],
 		Metadata: models.AdMetaData{
 			Category: data["category"],
 			Keyword:  data["keyword"],

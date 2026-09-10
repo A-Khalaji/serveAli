@@ -15,6 +15,50 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/click/{impression_id}": {
+            "get": {
+                "description": "Records a click for an ad impression and redirects to the destination URL.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Click"
+                ],
+                "summary": "Track an ad click",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Impression ID",
+                        "name": "impression_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Found"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/serve/{zone_id}": {
             "get": {
                 "description": "Returns a matching ad for the specified zone.\n\nFilters can be provided multiple times.\nExample:\n/serve/7?filter=available_ads\u0026filter=type:BANNER\u0026filter=category:restaurant\u0026filter=keyword:pizza",
@@ -79,6 +123,9 @@ const docTemplate = `{
             "properties": {
                 "ad_type": {
                     "$ref": "#/definitions/models.AdType"
+                },
+                "destination_url": {
+                    "type": "string"
                 },
                 "id": {
                     "type": "integer"
